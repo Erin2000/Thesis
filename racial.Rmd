@@ -1,0 +1,150 @@
+---
+title: "Untitled"
+author: "Yining He"
+date: "2024-12-20"
+output: html_document
+---
+```{r}
+library(readxl)
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(patchwork)
+```
+```{r}
+# Load the dataset
+racial_data <- read_excel("Trend data(From CDC wonder).xlsx", sheet = "Racial")
+
+# 确保 Crude Rate 列为数值类型
+racial_data <- racial_data %>%
+  mutate(`Crude Rate` = as.numeric(`Crude Rate`))
+
+# 获取所有药物类别
+substance_types <- unique(racial_data$Substances)
+
+# 按照药物类别分别绘图并显示
+for (substance in substance_types) {
+  plot <- ggplot(racial_data %>% filter(Substances == substance), 
+                 aes(x = Year, y = `Crude Rate`, color = `Single Race 6`, group = `Single Race 6`)) +
+    geom_line(size = 1, alpha = 0.7) +  # 设置线条透明度
+    geom_point(size = 2, alpha = 0.7) +  # 设置点透明度
+    geom_text(aes(label = round(`Crude Rate`, 1)), vjust = -0.5, size = 3) +  # 显示每个点的Crude Rate
+    labs(title = paste("Trend of", substance, "Crude Rates by Race (2018-2022)"),
+         x = "Year", y = "Crude Rate Per 100,000",
+         color = "Race") +
+    theme_minimal()
+  
+  print(plot)  # 显示图
+}
+```
+
+```{r}
+# 读取数据
+racial_data <- read_excel("Trend data(From CDC wonder).xlsx", sheet = "Racial")
+
+# 确保 Crude Rate 列为数值类型，将非数值（如 "unreliable"）转换为 NA
+racial_data <- racial_data %>%
+  mutate(`Crude Rate` = as.numeric(`Crude Rate`))
+
+# 获取所有种族
+racial_groups <- unique(racial_data$`Single Race 6`)
+
+# 按种族分别绘图
+for (race in racial_groups) {
+  plot <- ggplot(racial_data %>% filter(`Single Race 6` == race), 
+                 aes(x = Year, y = `Crude Rate`, color = Substances, group = Substances)) +
+    geom_line(size = 1, alpha = 0.7) +  # 设置线条透明度
+    geom_point(size = 2, alpha = 0.7) +  # 设置点透明度
+    geom_text(aes(label = round(`Crude Rate`, 1)), vjust = -0.5, size = 3) +  # 显示每个点的Crude Rate
+    labs(title = paste("Trend of Crude Rates for", race, "(2018-2022)"),
+         x = "Year", y = "Crude Rate Per 100,000",
+         color = "Substances") +
+    theme_minimal()
+  
+  print(plot)  # 显示图
+}
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(readxl)
+library(gridExtra)  # 用于将多个图表组合到一个页面中
+
+# 读取数据
+racial_data <- read_excel("Trend data(From CDC wonder).xlsx", sheet = "Racial")
+
+# 确保 Crude Rate 列为数值类型，将非数值（如 "unreliable"）转换为 NA
+racial_data <- racial_data %>%
+  mutate(`Crude Rate` = as.numeric(`Crude Rate`))
+
+# 获取所有种族
+racial_groups <- unique(racial_data$`Single Race 6`)
+
+# 存储图表
+plots <- list()
+
+# 按种族分别绘图
+for (race in racial_groups) {
+  plot <- ggplot(racial_data %>% filter(`Single Race 6` == race), 
+                 aes(x = Year, y = `Crude Rate`, color = Substances, group = Substances)) +
+    geom_line(size = 1, alpha = 0.7) +  # 设置线条透明度
+    geom_point(size = 2, alpha = 0.7) +  # 设置点透明度
+    geom_text(aes(label = round(`Crude Rate`, 1)), vjust = -0.5, size = 3) +  # 显示每个点的Crude Rate
+    labs(title = paste("Trend of Crude Rates for", race, "(2018-2022)"),
+         x = "Year", y = "Crude Rate Per 100,000",
+         color = "Substances") +
+    theme_minimal()
+  
+  # 将图存储到列表中
+  plots[[race]] <- plot
+}
+
+# 将所有图导出到一个 PDF 文件
+pdf("Crude_Rate_Trends_By_Race.pdf", width = 15, height = 15)  # 设置PDF大小
+grid.arrange(grobs = plots, ncol = 2)  # 将图表以2列布局放置
+dev.off()
+
+```
+```{r}
+library(ggplot2)
+library(dplyr)
+library(readxl)
+library(gridExtra)  # 用于将多个图表排列在一个页面中
+
+# 读取数据
+racial_data <- read_excel("Trend data(From CDC wonder).xlsx", sheet = "Racial")
+
+# 确保 Crude Rate 列为数值类型，将非数值（如 "unreliable"）转换为 NA
+racial_data <- racial_data %>%
+  mutate(`Crude Rate` = as.numeric(`Crude Rate`))
+
+# 获取所有药物类别
+substance_types <- unique(racial_data$Substances)
+
+# 存储图表
+plots <- list()
+
+# 按照药物类别分别绘图
+for (substance in substance_types) {
+  plot <- ggplot(racial_data %>% filter(Substances == substance), 
+                 aes(x = Year, y = `Crude Rate`, color = `Single Race 6`, group = `Single Race 6`)) +
+    geom_line(size = 1, alpha = 0.7) +  # 设置线条透明度
+    geom_point(size = 2, alpha = 0.7) +  # 设置点透明度
+    geom_text(aes(label = round(`Crude Rate`, 1)), vjust = -0.5, size = 3) +  # 显示每个点的Crude Rate
+    labs(title = paste("Trend of", substance, "Crude Rates by Race (2018-2022)"),
+         x = "Year", y = "Crude Rate Per 100,000",
+         color = "Race") +
+    theme_minimal()
+  
+  # 将图存储到列表中
+  plots[[substance]] <- plot
+}
+
+# 导出所有图到一个 PDF 文件
+pdf("Crude_Rate_Trends_By_Substance.pdf", width = 15, height = 12)  # 设置PDF页面大小
+grid.arrange(grobs = plots, ncol = 2)  # 设置图表排列为两列
+dev.off()
+
+```
+
